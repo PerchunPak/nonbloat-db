@@ -1,0 +1,21 @@
+{
+  "template": "/home/perchun/dev/python-template",
+  "commit": "73755a62202fa3ce203aeec2265b2f1500246b2f",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "nonbloat-db",
+      "organization": "PerchunPak",
+      "project_description": "Simple key-value database for my small projects!",
+      "other_languages_support": "n",
+      "ukrainian_language_support": "n",
+      "russian_language_support": "n",
+      "license": "AGPL3",
+      "_copy_without_render": [
+        "docs/_autoapi_templates/python"
+      ],
+      "_template": "/home/perchun/dev/python-template"
+    }
+  },
+  "directory": null
+}
