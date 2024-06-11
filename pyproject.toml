@@ -10,7 +10,6 @@ version = "0.1.0"
 license = "AGPL3"
 authors = []
 readme = "README.md"
-packages = [ { include = "src" } ]
 
 
 [tool.poetry.dependencies]
