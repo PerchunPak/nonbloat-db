@@ -9,27 +9,37 @@ INTERNAL_DATA_TYPE: te.TypeAlias = t.Dict[str, SERIALIZABLE_TYPE]
 
 
 class Storage:
-    def __init__(self, data: INTERNAL_DATA_TYPE, path: Path) -> None:
+    def __init__(self, path: Path) -> None:
         self._data: INTERNAL_DATA_TYPE = {}
         self._path = path
+        self._tempfile = Path(str(self._path) + ".temp")
 
     @classmethod
     async def init(cls, path: Path) -> te.Self:
-        data = await cls._read(path)
-        return cls(data, path)
+        instance = cls(path)
+        await instance._read()
+        return instance
 
-    @staticmethod
-    async def _read(path: Path) -> INTERNAL_DATA_TYPE:
-        if not path.exists():
-            return {}
+    async def _read(self) -> None:
+        if not self._path.exists():
+            self._data = {}
+            return
+
+        path = self._path
+        if self._tempfile.exists():
+            # TODO: logging
+            path = self._tempfile
 
         with path.open("r") as f:
-            return json.load(f)  # type: ignore[no-any-return]
+            self._data = json.load(f)
 
     async def _write(self) -> None:
-        # TODO: tempfile
+        self._path.replace(self._tempfile)
+
         with self._path.open("w") as f:
             json.dump(self._data, f)
+
+        self._tempfile.unlink()
 
     async def set(self, key: str, value: SERIALIZABLE_TYPE) -> None:
         if value is None:

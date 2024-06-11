@@ -6,7 +6,7 @@ from nbdb.storage import Storage
 
 
 @pytest.fixture
-async def storage() -> Storage:
+async def storage() -> Storage:  # TODO: provide temp path
     return await Storage.init()
 
 
@@ -24,3 +24,14 @@ async def test_storage_in_file(storage: Storage) -> None:
     await storage.set("abc", {"hello": "world"})
     await storage._write()
     assert await storage._read() == {"abc": {"hello": "world"}}
+
+
+async def test_failure_during_write(storage: Storage) -> None:
+    await storage.set("abc", "abc")
+    await storage._write()
+
+    await storage.set("abc", {"hello": "world"})
+    await storage._write()  # TODO: simulate write failure
+
+    storage2 = await Storage.init(storage._path)
+    assert storage2.get("abc") == "abc"
