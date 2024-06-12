@@ -1,4 +1,5 @@
 import typing as t
+from pathlib import Path
 
 import pytest
 
@@ -6,8 +7,8 @@ from nbdb.storage import Storage
 
 
 @pytest.fixture
-async def storage() -> Storage:  # TODO: provide temp path
-    return await Storage.init()
+async def storage(tmp_path: Path) -> Storage:
+    return await Storage.init(tmp_path / "database.json")
 
 
 @pytest.mark.parametrize("value", ("abc", 123123, {"hello": "world"}))
