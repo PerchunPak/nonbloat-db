@@ -37,12 +37,14 @@ class Storage:
             self._data = json.load(f)
 
     async def _write(self) -> None:
-        self._path.replace(self._tempfile)
+        if self._path.exists():
+            self._path.rename(self._tempfile)
 
         with self._path.open("w") as f:
             json.dump(self._data, f)
 
-        self._tempfile.unlink()
+        if self._tempfile.exists():
+            self._tempfile.unlink()
 
     async def set(self, key: str, value: SERIALIZABLE_TYPE) -> None:
         if value is None:
