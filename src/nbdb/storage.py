@@ -1,8 +1,11 @@
 import json
+import logging
 import typing as t
 from pathlib import Path
 
 import typing_extensions as te
+
+logger = logging.getLogger(__name__)
 
 SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"
 INTERNAL_DATA_TYPE: te.TypeAlias = t.Dict[str, SERIALIZABLE_TYPE]
@@ -27,7 +30,7 @@ class Storage:
 
         path = self._path
         if self._tempfile.exists():
-            # TODO: logging
+            logger.warning("Found tempfile with database, using it. Database file may be damaged")
             path = self._tempfile
 
         with path.open("r") as f:
