@@ -59,6 +59,11 @@ requests = "~2.31"
 GitPython = "~3.1"
 
 
+[[tool.poetry.source]]
+name = "pypi-public"
+url = "https://pypi.org/simple/"
+
+
 [tool.black]
 line-length = 120
 target-version = ['py38']
