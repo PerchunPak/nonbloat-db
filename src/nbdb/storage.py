@@ -12,13 +12,13 @@ INTERNAL_DATA_TYPE: te.TypeAlias = t.Dict[str, SERIALIZABLE_TYPE]
 
 
 class Storage:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path | str) -> None:
         self._data: INTERNAL_DATA_TYPE = {}
-        self._path = path
+        self._path = Path(path)
         self._tempfile = Path(str(self._path) + ".temp")
 
     @classmethod
-    async def init(cls, path: Path) -> te.Self:
+    async def init(cls, path: Path | str) -> te.Self:
         instance = cls(path)
         await instance._read()
         return instance
