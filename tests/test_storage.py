@@ -5,10 +5,20 @@ import pytest
 
 from nbdb.storage import Storage
 
+STORAGE_FACTORY_RETURN_TYPE: t.TypeAlias = t.Callable[[], t.Coroutine[Storage]]
+
 
 @pytest.fixture
-async def storage(tmp_path: Path) -> Storage:
-    return await Storage.init(tmp_path / "database.json")
+async def storage_factory(tmp_path_factory: t.Callable[[], Path]) -> STORAGE_FACTORY_RETURN_TYPE:
+    async def factory() -> Storage:
+        return await Storage.init(tmp_path_factory() / "database.json")
+
+    return factory
+
+
+@pytest.fixture
+async def storage(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> Storage:
+    return await storage_factory()
 
 
 @pytest.mark.parametrize("value", ("abc", 123123, {"hello": "world"}))
