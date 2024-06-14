@@ -19,6 +19,7 @@ packages = [
 python = ">=3.8.1,<3.13"
 
 typing-extensions = "*"
+aiofile = "~3"
 
 
 [tool.poetry.group.make.dependencies]

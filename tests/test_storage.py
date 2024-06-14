@@ -53,7 +53,7 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
 
     await storage1.set("abc", {"hello": "world"})
 
-    mocker.patch("json.dump", side_effect=IOError)
+    mocker.patch("json.dumps", side_effect=IOError)
     with pytest.raises(IOError):
         await storage1._write()
 

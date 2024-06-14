@@ -6,6 +6,7 @@ import typing as t
 from pathlib import Path
 
 import typing_extensions as te
+from aiofile import async_open
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +36,15 @@ class Storage:
             logger.warning("Found tempfile with database, using it. Database file may be damaged")
             path = self._tempfile
 
-        with path.open("r") as f:
-            self._data = json.load(f)
+        async with async_open(path, "r") as f:
+            self._data = json.loads(await f.read())
 
     async def _write(self) -> None:
         if self._path.exists():
             self._path.rename(self._tempfile)
 
-        with self._path.open("w") as f:
-            json.dump(self._data, f)
+        async with async_open(self._path, "w") as f:
+            await f.write(json.dumps(self._data))
 
         if self._tempfile.exists():
             self._tempfile.unlink()
