@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import typing as t
@@ -7,7 +9,7 @@ import typing_extensions as te
 
 logger = logging.getLogger(__name__)
 
-SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"
+SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"  # type: ignore[type-arg]
 INTERNAL_DATA_TYPE: te.TypeAlias = t.Dict[str, SERIALIZABLE_TYPE]
 
 
