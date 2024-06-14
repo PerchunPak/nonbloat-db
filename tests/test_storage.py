@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 import typing_extensions as te
+from pytest_mock import MockerFixture
 
 from nbdb.storage import Storage
 
@@ -45,12 +46,16 @@ async def test_storage_in_file(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> 
     assert storage2._data == {"abc": {"hello": "world"}}
 
 
-async def test_failure_during_write(storage: Storage) -> None:
-    await storage.set("abc", "abc")
-    await storage._write()
+async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE, mocker: MockerFixture) -> None:
+    storage1 = await storage_factory()
+    await storage1.set("abc", "abc")
+    await storage1._write()
 
-    await storage.set("abc", {"hello": "world"})
-    await storage._write()  # TODO: simulate write failure
+    await storage1.set("abc", {"hello": "world"})
 
-    storage2 = await Storage.init(storage._path)
+    mocker.patch("json.dump", side_effect=IOError)
+    with pytest.raises(IOError):
+        await storage1._write()
+
+    storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert await storage2.get("abc") == "abc"
