@@ -70,9 +70,8 @@ class Storage:
 
         if value is None:
             del self._data[key]
-            return
-
-        self._data[key] = value
+        else:
+            self._data[key] = value
 
         if task is not None:
             await asyncio.gather(task)

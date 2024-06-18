@@ -39,6 +39,14 @@ async def test_simple_storage(storage: Storage, value: t.Any, value2: t.Any) -> 
     assert await storage.get("akefoekof") == value2
 
 
+async def test_remove_item(storage: Storage) -> None:  # type: ignore[misc] # any
+    await storage.set("abc", "123")
+    await storage.set("abc", None)
+
+    with pytest.raises(KeyError):
+        await storage.get("abc")
+
+
 async def test_storage_in_file(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
     storage1 = await storage_factory()
     await storage1.set("abc", {"hello": "world"})
@@ -72,10 +80,31 @@ async def test_aof(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
     assert await storage2.get("abcabc") == "123"
 
 
-async def test_aof_failure(storage_factory: STORAGE_FACTORY_RETURN_TYPE, mocker: MockerFixture) -> None:
+async def test_aof_failure(storage: Storage, mocker: MockerFixture) -> None:
     # disable aof
-    mocker.patch("nbdb.storage.Storage._append_command", side_effect=IOError)
+    mocker.patch.object(storage, "_append_command", side_effect=IOError)
 
-    storage1 = await storage_factory()
     with pytest.raises(IOError):
-        await storage1.set("123", "abc")
+        await storage.set("123", "abc")
+
+
+async def test_write_deletes_tempfiles(storage: Storage, mocker: MockerFixture) -> None:
+    # create temp file by write failure
+    await storage._write()
+    mocker.patch("json.dumps", side_effect=IOError)
+    with pytest.raises(IOError):
+        await storage._write()
+    mocker.stopall()
+
+    # create AOF file
+    await storage.set("abc", 123)
+
+    assert storage._path.exists()
+    assert storage._tempfile.exists()
+    assert storage._aof_path.exists()
+
+    await storage._write()
+
+    assert storage._path.exists()
+    assert not storage._tempfile.exists()
+    assert not storage._aof_path.exists()
