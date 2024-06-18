@@ -23,8 +23,6 @@ class Storage:
         # Append Only File, see https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
         self._aof_path = Path(str(self._path) + ".log.temp")
 
-        self._background_tasks: set[asyncio.Task[t.Any]] = set()  # type: ignore[misc]
-
     @classmethod
     async def init(cls, path: Path | str) -> te.Self:
         instance = cls(path)
@@ -50,15 +48,14 @@ class Storage:
                         await self.set(key, value, _replay=True)
 
     async def _write(self) -> None:
-        await asyncio.gather(*self._background_tasks)
-
         if self._path.exists():
             self._path.rename(self._tempfile)
 
         async with aiofile.async_open(self._path, "w") as f:
             await f.write(json.dumps(self._data))
 
-        self._aof_path.unlink()
+        if self._aof_path.exists():
+            self._aof_path.unlink()
         if self._tempfile.exists():
             self._tempfile.unlink()
 
@@ -67,16 +64,18 @@ class Storage:
             await f.write(json.dumps({key: value}))
 
     async def set(self, key: str, value: SERIALIZABLE_TYPE, _replay: bool = False) -> None:
+        task = None
         if not _replay:
             task = asyncio.create_task(self._append_command(key, value))
-            self._background_tasks.add(task)
-            task.add_done_callback(self._background_tasks.discard)
 
         if value is None:
             del self._data[key]
             return
 
         self._data[key] = value
+
+        if task is not None:
+            await asyncio.gather(task)
 
     async def get(self, key: str) -> SERIALIZABLE_TYPE:
         return self._data[key]

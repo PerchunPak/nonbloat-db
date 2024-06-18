@@ -50,6 +50,7 @@ async def test_storage_in_file(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> 
 
 async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE, mocker: MockerFixture) -> None:
     storage1 = await storage_factory()
+    mocker.patch.object(storage1, "_append_command")  # disable aof
     await storage1.set("abc", "abc")
     await storage1._write()
 
@@ -58,7 +59,6 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
     with mocker.patch.context_manager(json, "dumps", side_effect=IOError):
         with pytest.raises(IOError):
             await storage1._write()
-    assert len(storage1._background_tasks) == 0
 
     storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert await storage2.get("abc") == "abc"
@@ -67,7 +67,15 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
 async def test_aof(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
     storage1 = await storage_factory()
     await storage1.set("abcabc", "123")
-    await asyncio.gather(*storage1._background_tasks)
 
     storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert await storage2.get("abcabc") == "123"
+
+
+async def test_aof_failure(storage_factory: STORAGE_FACTORY_RETURN_TYPE, mocker: MockerFixture) -> None:
+    # disable aof
+    mocker.patch("nbdb.storage.Storage._append_command", side_effect=IOError)
+
+    storage1 = await storage_factory()
+    with pytest.raises(IOError):
+        await storage1.set("123", "abc")
