@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import typing as t
 from pathlib import Path
 
@@ -53,9 +55,19 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
 
     await storage1.set("abc", {"hello": "world"})
 
-    mocker.patch("json.dumps", side_effect=IOError)
-    with pytest.raises(IOError):
-        await storage1._write()
+    with mocker.patch.context_manager(json, "dumps", side_effect=IOError):
+        with pytest.raises(IOError):
+            await storage1._write()
+    assert len(storage1._background_tasks) == 0
 
     storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert await storage2.get("abc") == "abc"
+
+
+async def test_aof(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
+    storage1 = await storage_factory()
+    await storage1.set("abcabc", "123")
+    await asyncio.gather(*storage1._background_tasks)
+
+    storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
+    assert await storage2.get("abcabc") == "123"
