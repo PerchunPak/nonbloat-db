@@ -23,10 +23,16 @@ class Storage:
         # Append Only File, see https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
         self._aof_path = Path(str(self._path) + ".log.temp")
 
+        self._write_loop_task: asyncio.Task[te.Never] = None  # type: ignore[assignment] # will be set in `.init`
+
     @classmethod
-    async def init(cls, path: Path | str) -> te.Self:
+    async def init(cls, path: Path | str, write_interval: int | t.Literal[False] = 5 * 60) -> te.Self:
         instance = cls(path)
         await instance.read()
+
+        if write_interval is not False:
+            instance._write_loop_task = asyncio.create_task(instance._write_loop(write_interval))
+
         return instance
 
     async def read(self) -> None:
@@ -58,6 +64,15 @@ class Storage:
             self._aof_path.unlink()
         if self._tempfile.exists():
             self._tempfile.unlink()
+
+    async def _write_loop(self, interval: int) -> te.Never:
+        while True:
+            try:
+                await self.write()
+            except Exception as exception:
+                logger.exception("Error during write!", exc_info=exception)
+            else:
+                await asyncio.sleep(interval)
 
     async def _append_command(self, key: str, value: SERIALIZABLE_TYPE) -> None:
         async with aiofile.async_open(self._aof_path, "a") as f:

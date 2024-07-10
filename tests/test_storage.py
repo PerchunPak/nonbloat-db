@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import typing as t
 from pathlib import Path
@@ -16,10 +17,10 @@ STORAGE_FACTORY_RETURN_TYPE: te.TypeAlias = t.Callable[[], t.Awaitable[Storage]]
 
 @pytest.fixture
 async def storage_factory(tmp_path_factory: pytest.TempPathFactory, faker: Faker) -> STORAGE_FACTORY_RETURN_TYPE:
-    async def factory(path: t.Optional[Path] = None) -> Storage:
+    async def factory(path: t.Optional[Path] = None, write_interval=False) -> Storage:
         if path is None:
             path = tmp_path_factory.mktemp("data") / (faker.pystr() + ".json")
-        return await Storage.init(path)
+        return await Storage.init(path, write_interval=write_interval)
 
     return factory
 
@@ -125,3 +126,18 @@ async def test_write_deletes_tempfiles(storage: Storage, mocker: MockerFixture) 
     assert storage._path.exists()
     assert not storage._tempfile.exists()
     assert not storage._aof_path.exists()
+
+
+async def test_write_in_background(
+    storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker, mocker: MockerFixture
+) -> None:
+    key, value = faker.pystr(), faker.pystr()
+    storage = await storage_factory(write_interval=0.1)  # type: ignore[call-arg]
+    mocker.patch.object(storage, "_append_command")  # disable AOF
+
+    await storage.set(key, value)
+    await asyncio.sleep(0.1)
+    storage._write_loop_task.cancel()
+
+    storage2 = await storage_factory(storage._path)  # type: ignore[call-arg]
+    assert await storage2.get(key) == value
