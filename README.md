@@ -9,12 +9,60 @@
 
 Simple key-value database for my small projects!
 
-## Features
+The idea is to have a dead simple database, which doesn't require spinning up a
+server (like Redis), is not underwhelming with features (like SQLite or SQL in
+general), data inside can be easily manually reviewed and modified and it
+doesn't corrupt (if you just dump JSON into file using `json.dump`, if the
+program was forced to stop during write (e.g. because of power outage),
+the data will be corrupted).
 
-- Free! We don't want any money from you!
-- Add yours!
+The purpose of this project is to serve as a database library for my small projects.
+So obviously this solution doesn't scale to thousands of users, and it was
+never intended to. Use right tool for right job.
+
+Also, do note, that everything is async. There is no synchronous version,
+because all of my projects are generally async. I maybe will add a synchronous
+wrapper, but I don't promise.
+
+## How does it work?
+
+It is just a really simple key-value storage:
+
+```python
+import asyncio
+from nbdb.storage import Storage
+
+
+async def main():
+    # you need to provide a path to database
+    my_db = await Storage.init("data/db.json")
+    await my_db.set("abc", 123)
+
+    value = await my_db.get("abc")
+    print(value)  # 123
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+> [!NOTE]
+> Everything in this library is asynchronous, so you have to call it
+> from async functions.
+
+In the background, a lot of things are happening. For example, when you call
+`.set`, the db writes the operation to special AOF (Append Only File; this is
+what [Redis uses](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)
+to achieve data persistence).
+
+And on every write, library renames `db.json` to `db.json.tmp` and then writes
+to `db.json` new data. This is done to not corrupt data in case of power outage
+or force shutdown. If library during initial read finds a `.tmp` file next to
+database, it will output a warning and read from temp file.
 
 ## Installing
+
+It is not yet published to PyPI, so good luck.
 
 ```bash
 pip install nonbloat-db
@@ -46,36 +94,12 @@ If you use Windows, open PowerShell with admin privileges and use:
 ### Installing dependencies
 
 ```bash
-poetry install --no-dev
+poetry install
 ```
-
-### Configuration
-
-All configuration happens in `config.yml`, or with environment variables.
 
 ### If something is not clear
 
 You can always write me!
-
-## Example
-
-```py
-from nonbloat_db.example import some_function
-
-print(some_function(3, 4))
-# => 7
-```
-
-## Updating
-
-```bash
-pip install -U nonbloat-db
-```
-
-### For local development
-
-For updating, just re-download repository (do not forget save config),
-if you used `git` for downloading, just run `git pull`.
 
 ## Thanks
 
