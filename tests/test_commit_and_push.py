@@ -140,7 +140,9 @@ def test_generate_request_data_return_valid_data(faker: faker_package.Faker, moc
     )
 
 
-def test_send_http_request_call_required_functions(mocker: pytest_mock.MockerFixture, faker: faker_package.Faker) -> None:
+def test_send_http_request_call_required_functions(
+    mocker: pytest_mock.MockerFixture, faker: faker_package.Faker
+) -> None:
     """Tests that ``send_http_request`` function calls required functions."""
     response = mocker.patch("requests.post")
     passed_args = faker.pytuple(), faker.pydict()
@@ -165,11 +167,19 @@ def test_send_http_request_run_code_only_once(mocker: pytest_mock.MockerFixture)
 def test_send_http_request_error_handling(mocker: pytest_mock.MockerFixture, faker: faker_package.Faker) -> None:
     """Tests that ``send_http_request`` function correctly handling errors."""
     response = mocker.patch("requests.post")
-    response.return_value.json.return_value = {"errors": [{"message": faker.sentence()} for _ in range(faker.pyint(2, 5))]}
+    response.return_value.json.return_value = {
+        "errors": [{"message": faker.sentence()} for _ in range(faker.pyint(2, 5))]
+    }
     generator = commit_and_push.send_http_request((), {})
     next(generator)
 
-    with pytest.raises(ValueError, match=re.escape("Github raised error(s): \n" + "\n".join(error["message"] for error in response.return_value.json.return_value["errors"]))):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Github raised error(s): \n"
+            + "\n".join(error["message"] for error in response.return_value.json.return_value["errors"])
+        ),
+    ):
         try:
             next(generator)
         except StopIteration:
@@ -189,12 +199,15 @@ def test_get_welcome_info(mocker: pytest_mock.MockerFixture, faker: faker_packag
     commit = mocker.patch("commit_and_push.get_latest_commit", return_value=faker.sha256())()
     args = argparse.Namespace(repository=faker.word(), branch=faker.word(), message=faker.text(), token=faker.text())
 
-    assert commit_and_push.get_welcome_info(args) == f"""\
+    assert (
+        commit_and_push.get_welcome_info(args)
+        == f"""\
 Repository to commit and push: '{args.repository}'.
 Branch to commit and push: '{args.branch}'.
 Commit message: '{args.message}'.
 Latest commit: '{commit}'\
 """
+    )
 
 
 def test_calculate_file_changes_returns_none_if_diff_is_empty() -> None:
@@ -274,9 +287,17 @@ def test_main_calls_right_order(mocker: pytest_mock.MockerFixture, faker: faker_
     calculate_file_changes = mocker.patch("commit_and_push.calculate_file_changes")
     generate_request_data = mocker.patch("commit_and_push.generate_request_data", return_value=faker.pytuple())
     send_http_request, commit_url = mocker.patch("commit_and_push.send_http_request"), faker.url()
-    send_http_request.return_value = ({'data': {'createCommitOnBranch': {'commit': {'url': commit_url}}}},)
+    send_http_request.return_value = ({"data": {"createCommitOnBranch": {"commit": {"url": commit_url}}}},)
     git_pull = mocker.patch("commit_and_push._git_pull")
-    mocked = [parse_args, get_welcome_info, get_diff, calculate_file_changes, generate_request_data, send_http_request, git_pull]
+    mocked = [
+        parse_args,
+        get_welcome_info,
+        get_diff,
+        calculate_file_changes,
+        generate_request_data,
+        send_http_request,
+        git_pull,
+    ]
 
     main_func = commit_and_push.main()
     assert_not_called(*mocked)
@@ -323,7 +344,7 @@ def test_main_yields_right_order(mocker: pytest_mock.MockerFixture, faker: faker
     calculate_file_changes = mocker.patch("commit_and_push.calculate_file_changes")
     mocker.patch("commit_and_push.generate_request_data", return_value=faker.pytuple())
     send_http_request, commit_url = mocker.patch("commit_and_push.send_http_request"), faker.url()
-    send_http_request.return_value = ({'data': {'createCommitOnBranch': {'commit': {'url': commit_url}}}},)
+    send_http_request.return_value = ({"data": {"createCommitOnBranch": {"commit": {"url": commit_url}}}},)
     mocker.patch("commit_and_push._git_pull")
 
     main_func = commit_and_push.main()
@@ -346,7 +367,7 @@ def test_main_returns_on_no_changes(mocker: pytest_mock.MockerFixture, faker: fa
     mocker.patch("commit_and_push.calculate_file_changes", return_value=())
     generate_request_data = mocker.patch("commit_and_push.generate_request_data", return_value=faker.pytuple())
     send_http_request, commit_url = mocker.patch("commit_and_push.send_http_request"), faker.url()
-    send_http_request.return_value = ({'data': {'createCommitOnBranch': {'commit': {'url': commit_url}}}},)
+    send_http_request.return_value = ({"data": {"createCommitOnBranch": {"commit": {"url": commit_url}}}},)
     git_pull = mocker.patch("commit_and_push._git_pull")
 
     main_func = commit_and_push.main()
