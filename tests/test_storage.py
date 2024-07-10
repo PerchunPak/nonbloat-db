@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import typing as t
 from pathlib import Path
 
 import pytest
 import typing_extensions as te
+from faker import Faker
 from pytest_mock import MockerFixture
 
 from nbdb.storage import Storage
@@ -15,10 +15,10 @@ STORAGE_FACTORY_RETURN_TYPE: te.TypeAlias = t.Callable[[], t.Awaitable[Storage]]
 
 
 @pytest.fixture
-async def storage_factory(tmp_path_factory: pytest.TempPathFactory) -> STORAGE_FACTORY_RETURN_TYPE:
+async def storage_factory(tmp_path_factory: pytest.TempPathFactory, faker: Faker) -> STORAGE_FACTORY_RETURN_TYPE:
     async def factory(path: t.Optional[Path] = None) -> Storage:
         if path is None:
-            path = tmp_path_factory.mktemp("data") / "database.json"
+            path = tmp_path_factory.mktemp("data") / (faker.pystr() + ".json")
         return await Storage.init(path)
 
     return factory
@@ -29,22 +29,39 @@ async def storage(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> Storage:
     return await storage_factory()
 
 
-@pytest.mark.parametrize("value", ("abc", 123123, {"hello": "world"}))
-@pytest.mark.parametrize("value2", ("abc", 123123, {"hello": "world"}))
-async def test_simple_storage(storage: Storage, value: t.Any, value2: t.Any) -> None:  # type: ignore[misc] # any
-    await storage.set("abc", value)
-    assert await storage.get("abc") == value
+@pytest.mark.parametrize("value1_type", ("pystr", "pyint", "json"))
+@pytest.mark.parametrize("value2_type", ("pystr", "pyint", "json"))
+async def test_simple_storage(storage: Storage, faker: Faker, value1_type: str, value2_type: str) -> None:
+    key1 = faker.pystr()
+    key2 = faker.pystr()
+    value1 = getattr(faker, value1_type)()
+    value2 = getattr(faker, value2_type)()
 
-    await storage.set("akefoekof", value2)
-    assert await storage.get("akefoekof") == value2
+    if value1_type == "json":
+        value1 = json.loads(value1)
+    if value2_type == "json":
+        value2 = json.loads(value2)
+
+    await storage.set(key1, value1)
+    assert await storage.get(key1) == value1
+
+    await storage.set(key2, value2)
+    assert await storage.get(key2) == value2
 
 
-async def test_remove_item(storage: Storage) -> None:  # type: ignore[misc] # any
-    await storage.set("abc", "123")
-    await storage.set("abc", None)
+@pytest.mark.parametrize("value_type", ("pystr", "pyint", "json"))
+async def test_remove_item(storage: Storage, faker: Faker, value_type: str) -> None:
+    key = faker.pystr()
+    value = getattr(faker, value_type)()
+
+    if value_type == "json":
+        value = json.loads(value)
+
+    await storage.set(key, value)
+    await storage.set(key, None)
 
     with pytest.raises(KeyError):
-        await storage.get("abc")
+        await storage.get(key)
 
 
 async def test_storage_in_file(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
