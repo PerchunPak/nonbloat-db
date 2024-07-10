@@ -26,10 +26,10 @@ class Storage:
     @classmethod
     async def init(cls, path: Path | str) -> te.Self:
         instance = cls(path)
-        await instance._read()
+        await instance.read()
         return instance
 
-    async def _read(self) -> None:
+    async def read(self) -> None:
         path = self._path
         if self._tempfile.exists():
             logger.warning("Found tempfile with database, using it. Database file may be damaged")
@@ -47,7 +47,7 @@ class Storage:
                     for key, value in json.loads(line).items():
                         await self.set(key, value, _replay=True)
 
-    async def _write(self) -> None:
+    async def write(self) -> None:
         if self._path.exists():
             self._path.rename(self._tempfile)
 

@@ -67,7 +67,7 @@ async def test_remove_item(storage: Storage, faker: Faker, value_type: str) -> N
 async def test_storage_in_file(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
     storage1 = await storage_factory()
     await storage1.set("abc", {"hello": "world"})
-    await storage1._write()
+    await storage1.write()
 
     storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert storage2._data == {"abc": {"hello": "world"}}
@@ -77,13 +77,13 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
     storage1 = await storage_factory()
     mocker.patch.object(storage1, "_append_command")  # disable aof
     await storage1.set("abc", "abc")
-    await storage1._write()
+    await storage1.write()
 
     await storage1.set("abc", {"hello": "world"})
 
     with mocker.patch.context_manager(json, "dumps", side_effect=IOError):
         with pytest.raises(IOError):
-            await storage1._write()
+            await storage1.write()
 
     storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
     assert await storage2.get("abc") == "abc"
@@ -107,10 +107,10 @@ async def test_aof_failure(storage: Storage, mocker: MockerFixture) -> None:
 
 async def test_write_deletes_tempfiles(storage: Storage, mocker: MockerFixture) -> None:
     # create temp file by write failure
-    await storage._write()
+    await storage.write()
     mocker.patch("json.dumps", side_effect=IOError)
     with pytest.raises(IOError):
-        await storage._write()
+        await storage.write()
     mocker.stopall()
 
     # create AOF file
@@ -120,7 +120,7 @@ async def test_write_deletes_tempfiles(storage: Storage, mocker: MockerFixture) 
     assert storage._tempfile.exists()
     assert storage._aof_path.exists()
 
-    await storage._write()
+    await storage.write()
 
     assert storage._path.exists()
     assert not storage._tempfile.exists()

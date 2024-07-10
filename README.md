@@ -41,6 +41,8 @@ async def main():
     value = await my_db.get("abc")
     print(value)  # 123
 
+    await my_db.write()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
