@@ -14,7 +14,7 @@
       "_copy_without_render": [
         "docs/_autoapi_templates/python"
       ],
-      "_template": "/home/perchun/dev/python-template"
+      "_template": "https://github.com/PerchunPak/python-template"
     }
   },
   "directory": null
