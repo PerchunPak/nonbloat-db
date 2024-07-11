@@ -47,8 +47,8 @@ Faker = "~26.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "~7.3"
+sphinx-autobuild = ">=2024.4.16"
 sphinx-autodoc-typehints = "~2.2"
-sphinx-autoapi = "~3.1"
 furo = "*"
 m2r2 = "~0.3"
 tomli = { version = "~2.0", markers = "python_version < '3.11'" }

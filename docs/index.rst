@@ -13,7 +13,6 @@ Pages
 	:maxdepth: 1
 	:caption: API Reference
 
-	api/index.rst
 
 Indexes and tables
 ------------------

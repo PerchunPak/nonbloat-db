@@ -14,11 +14,9 @@ http://www.sphinx-doc.org/en/master/config
 import os
 import sys
 from datetime import date
-from typing import Dict, List, Optional
+from typing import Dict
 
-from autoapi._objects import PythonModule
 from packaging.version import parse as parse_version
-from sphinx.application import Sphinx
 
 try:
     from tomllib import load as toml_parse
@@ -26,11 +24,6 @@ except ModuleNotFoundError:  # python <3.11
     from tomli import load as toml_parse
 
 sys.path.insert(0, os.path.abspath(".."))
-
-
-def setup(sphinx: Sphinx) -> None:
-    """Some setup steps for sphinx."""
-    sphinx.connect("autoapi-skip-member", skip_data_from_docs)
 
 
 # -- Project information -----------------------------------------------------
@@ -57,7 +50,7 @@ release = str(parsed_version)
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "5.0"
+needs_sphinx = "7.3"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named "sphinx.ext.*") or your custom
@@ -72,15 +65,12 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     # Used to reference for third party projects:
     "sphinx.ext.intersphinx",
-    # Used to write beautiful docstrings:
+    # Used to write docstrings in Google style:
     "sphinx.ext.napoleon",
     # Used to include .md files:
     "m2r2",
     # Used to insert typehints into the final docs:
     "sphinx_autodoc_typehints",
-    # Same to `sphinx.ext.autodoc`, but parse source code
-    # instead of importing it:
-    "autoapi.extension",
 ]
 
 autoclass_content = "class"
@@ -117,7 +107,7 @@ language = "en"
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 # Also, this should ignore AutoAPI template files.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_autoapi_templates/*"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -147,27 +137,35 @@ napoleon_include_private_with_doc = True
 napoleon_use_admonition_for_examples = True
 napoleon_use_admonition_for_references = True
 
-# Configuration for autoapi
-autoapi_dirs = ["../src"]
-autoapi_template_dir = "_autoapi_templates"
-autoapi_root = "api"
-
 # Third-party projects documentation references:
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
 
 
-def skip_data_from_docs(
-    app: Sphinx, what: str, name: str, obj: PythonModule, skip: Optional[bool], options: List[str]
-) -> Optional[bool]:
-    """Skip ``logger`` function everywhere."""
-    if what == "data" and name.endswith(".logger"):
-        skip = True
-    return skip
-
-
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+
+# -- Mocks -------------------------------------------------------------------
+
+
+def mock_autodoc() -> None:
+    """Mock autodoc to not add ``Bases: object`` to the classes, that do not have super classes.
+
+    See also https://stackoverflow.com/a/75041544/20952782.
+    """
+    from sphinx.ext import autodoc
+
+    class MockedClassDocumenter(autodoc.ClassDocumenter):
+        def add_line(self, line: str, source: str, *lineno: int) -> None:
+            if line == "   Bases: :py:class:`object`":
+                return
+            super().add_line(line, source, *lineno)
+
+    autodoc.ClassDocumenter = MockedClassDocumenter
+
+
+mock_autodoc()
