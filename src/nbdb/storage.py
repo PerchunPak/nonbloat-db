@@ -12,12 +12,14 @@ import typing_extensions as te
 logger = logging.getLogger(__name__)
 
 SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"  # type: ignore[type-arg]
-INTERNAL_DATA_TYPE: te.TypeAlias = t.Dict[str, SERIALIZABLE_TYPE]
+"""Types that are JSON serializable."""
 
 
 class Storage:
+    """Core key-value store, that is responsible for correctly storing JSON and writing it to file"""
+
     def __init__(self, path: Path | str) -> None:
-        self._data: INTERNAL_DATA_TYPE = {}
+        self._data: dict[str, SERIALIZABLE_TYPE] = {}
         self._path = Path(path)
         self._tempfile = Path(str(self._path) + ".temp")
         # Append Only File, see https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
@@ -27,6 +29,15 @@ class Storage:
 
     @classmethod
     async def init(cls, path: Path | str, write_interval: int | t.Literal[False] = 5 * 60) -> te.Self:
+        """Python doesn't have async init methods, so we have to use this.
+
+
+        Arguments:
+            path:
+                Path to database file. Do note that you should allocate entire
+                folder to the database, because this library creates a few
+                temp files near the db for technical reasons.
+        """
         instance = cls(path)
         await instance.read()
 
@@ -36,6 +47,12 @@ class Storage:
         return instance
 
     async def read(self) -> None:
+        """Read content from the db file.
+
+        This method is usually called only on initialization, but if you added
+        some data to the file manually, you can call this method to sync
+        in-memory state with what is written on disk.
+        """
         path = self._path
         if self._tempfile.exists():
             logger.warning("Found tempfile with database, using it. Database file may be damaged")
@@ -54,6 +71,10 @@ class Storage:
                         await self.set(key, value, _replay=True)
 
     async def write(self) -> None:
+        """Save changes on disk.
+
+        You can also manually call this method whenever you want.
+        """
         if self._path.exists():
             self._path.rename(self._tempfile)
 
@@ -66,6 +87,11 @@ class Storage:
             self._tempfile.unlink()
 
     async def _write_loop(self, interval: int) -> te.Never:
+        """Call :func:`.write` every N seconds.
+
+        Arguments:
+            interval: How long we wait between every write.
+        """
         while True:
             try:
                 await self.write()
@@ -75,10 +101,17 @@ class Storage:
                 await asyncio.sleep(interval)
 
     async def _append_command(self, key: str, value: SERIALIZABLE_TYPE) -> None:
+        """Handle AOF logic on every :func:`set`."""
         async with aiofile.async_open(self._aof_path, "a") as f:
             await f.write(json.dumps({key: value}))
 
     async def set(self, key: str, value: SERIALIZABLE_TYPE, _replay: bool = False) -> None:
+        """
+        Arguments:
+            _replay:
+                If ``True``, we won't do AOF stuff. This is used when we replay
+                operations from AOF.
+        """
         task = None
         if not _replay:
             task = asyncio.create_task(self._append_command(key, value))
