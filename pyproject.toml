@@ -54,6 +54,10 @@ m2r2 = "~0.3"
 tomli = { version = "~2.0", markers = "python_version < '3.11'" }
 packaging = "24.1"
 
+# workarounds
+setuptools = ">=70" # No module named 'pkg_resources'
+docutils = ">=0.18.1,<0.21" # https://github.com/CrossNox/m2r2/issues/68
+
 
 [tool.poetry.group.github_hooks]
 optional = true

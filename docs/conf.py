@@ -16,7 +16,7 @@ import sys
 from datetime import date
 from typing import Dict, List, Optional
 
-from autoapi.mappers.python.objects import PythonModule
+from autoapi._objects import PythonModule
 from packaging.version import parse as parse_version
 from sphinx.application import Sphinx
 
@@ -161,8 +161,8 @@ intersphinx_mapping = {
 def skip_data_from_docs(
     app: Sphinx, what: str, name: str, obj: PythonModule, skip: Optional[bool], options: List[str]
 ) -> Optional[bool]:
-    """Skip ``log`` function everywhere."""
-    if what == "data" and name.endswith(".log"):
+    """Skip ``logger`` function everywhere."""
+    if what == "data" and name.endswith(".logger"):
         skip = True
     return skip
 
