@@ -37,6 +37,9 @@ class Storage:
                 Path to database file. Do note that you should allocate entire
                 folder to the database, because this library creates a few
                 temp files near the db for technical reasons.
+            write_interval:
+                How often we should write to database in seconds? Set to ``False``
+                to disable automatic writing at all.
         """
         instance = cls(path)
         await instance.read()

@@ -57,9 +57,9 @@ In the background, a lot of things are happening. For example, when you call
 what [Redis uses](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)
 to achieve data persistence).
 
-And on every write, library renames `db.json` to `db.json.tmp` and then writes
+And on every write, library renames `db.json` to `db.json.temp` and then writes
 to `db.json` new data. This is done to not corrupt data in case of power outage
-or force shutdown. If library during initial read finds a `.tmp` file next to
+or force shutdown. If library during initial read finds a `.temp` file next to
 database, it will output a warning and read from temp file.
 
 ## Installing
