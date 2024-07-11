@@ -1,4 +1,5 @@
 """Tests for ``.github/commit_and_push.py``."""
+
 import argparse
 import base64
 import json

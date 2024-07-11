@@ -7,6 +7,7 @@ when you're committing with API, there will be *verified* label.
     This will actually run ``git add .`` and ``git pull`` in the end,
     so consider **do not run** this, if you will not debug it.
 """
+
 import argparse
 import base64
 import dataclasses
