@@ -1,5 +1,5 @@
 {
-  "template": "/home/perchun/dev/python-template",
+  "template": "https://github.com/PerchunPak/python-template",
   "commit": "73755a62202fa3ce203aeec2265b2f1500246b2f",
   "checkout": null,
   "context": {
