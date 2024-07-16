@@ -148,7 +148,7 @@ async def test_write_in_background(
 async def test_storage_indent(storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker, t: str | int) -> None:
     key, value = faker.pystr(), faker.pystr()
     key2, value2 = faker.pystr(), faker.pystr()
-    storage = await storage_factory(indent=t, write_interval=None)  # type: ignore[call-arg]
+    storage = await storage_factory(indent=t, write_interval=False)  # type: ignore[call-arg]
 
     if isinstance(t, int):
         t = " " * t
@@ -174,7 +174,7 @@ async def test_storage_indent(storage_factory: STORAGE_FACTORY_RETURN_TYPE, fake
 async def test_storage_no_indent(storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker) -> None:
     key, value = faker.pystr(), faker.pystr()
     key2, value2 = faker.pystr(), faker.pystr()
-    storage = await storage_factory(indent=None, write_interval=None)  # type: ignore[call-arg]
+    storage = await storage_factory(indent=None, write_interval=False)  # type: ignore[call-arg]
 
     await storage.set(key, value)
     await storage.set(key2, value2)

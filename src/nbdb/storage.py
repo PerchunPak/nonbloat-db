@@ -38,7 +38,6 @@ class Storage:
     ) -> te.Self:
         """Python doesn't have async init methods, so we have to use this.
 
-
         Arguments:
             path:
                 Path to database file. Do note that you should allocate entire
@@ -55,7 +54,7 @@ class Storage:
         instance = cls(path, indent=indent)
         await instance.read()
 
-        if write_interval is not False:
+        if write_interval:
             instance._write_loop_task = asyncio.create_task(instance._write_loop(write_interval))
 
         return instance
