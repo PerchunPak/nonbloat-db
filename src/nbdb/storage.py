@@ -18,17 +18,24 @@ SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"  # type: ignore[type
 class Storage:
     """Core key-value store, that is responsible for correctly storing JSON and writing it to file"""
 
-    def __init__(self, path: Path | str) -> None:
+    def __init__(self, path: Path | str, *, indent: int | None) -> None:
         self._data: dict[str, SERIALIZABLE_TYPE] = {}
         self._path = Path(path)
         self._tempfile = Path(str(self._path) + ".temp")
         # Append Only File, see https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
         self._aof_path = Path(str(self._path) + ".log.temp")
+        self._indent = indent
 
         self._write_loop_task: asyncio.Task[te.Never] = None  # type: ignore[assignment] # will be set in `.init`
 
     @classmethod
-    async def init(cls, path: Path | str, write_interval: int | t.Literal[False] = 5 * 60) -> te.Self:
+    async def init(
+        cls,
+        path: Path | str,
+        *,
+        write_interval: int | t.Literal[False] = 5 * 60,
+        indent: int | None = 2,
+    ) -> te.Self:
         """Python doesn't have async init methods, so we have to use this.
 
 
@@ -40,8 +47,12 @@ class Storage:
             write_interval:
                 How often we should write to database in seconds? Set to ``False``
                 to disable automatic writing at all.
+            indent:
+                If it is not ``None``, data in database file will be pretty
+                printed with that indent level. Value is directly passed to
+                :py:func:`json.dump`.
         """
-        instance = cls(path)
+        instance = cls(path, indent=indent)
         await instance.read()
 
         if write_interval is not False:
@@ -82,7 +93,7 @@ class Storage:
             self._path.rename(self._tempfile)
 
         async with aiofile.async_open(self._path, "w") as f:
-            await f.write(json.dumps(self._data))
+            await f.write(json.dumps(self._data, indent=self._indent, ensure_ascii=False))
 
         if self._aof_path.exists():
             self._aof_path.unlink()

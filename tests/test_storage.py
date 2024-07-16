@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import textwrap
 import typing as t
 from pathlib import Path
 
@@ -17,10 +18,10 @@ STORAGE_FACTORY_RETURN_TYPE: te.TypeAlias = t.Callable[[], t.Awaitable[Storage]]
 
 @pytest.fixture
 async def storage_factory(tmp_path_factory: pytest.TempPathFactory, faker: Faker) -> STORAGE_FACTORY_RETURN_TYPE:
-    async def factory(path: t.Optional[Path] = None, write_interval=False) -> Storage:
+    async def factory(path: t.Optional[Path] = None, *args, **kwargs) -> Storage:
         if path is None:
             path = tmp_path_factory.mktemp("data") / (faker.pystr() + ".json")
-        return await Storage.init(path, write_interval=write_interval)
+        return await Storage.init(path, *args, **kwargs)
 
     return factory
 
@@ -141,3 +142,43 @@ async def test_write_in_background(
 
     storage2 = await storage_factory(storage._path)  # type: ignore[call-arg]
     assert await storage2.get(key) == value
+
+
+@pytest.mark.parametrize("t", [2, "\t", "aaaa"])
+async def test_storage_indent(storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker, t: str | int) -> None:
+    key, value = faker.pystr(), faker.pystr()
+    key2, value2 = faker.pystr(), faker.pystr()
+    storage = await storage_factory(indent=t, write_interval=None)  # type: ignore[call-arg]
+
+    if isinstance(t, int):
+        t = " " * t
+
+    await storage.set(key, value)
+    await storage.set(key2, value2)
+    await storage.write()
+
+    with storage._path.open("r") as f:
+        assert (
+            f.read()
+            == textwrap.dedent(
+                f"""\
+                    {'{'}
+                    {t}"{key}": "{value}",
+                    {t}"{key2}": "{value2}"
+                    {'}'}
+                """
+            ).removesuffix("\n")
+        )
+
+
+async def test_storage_no_indent(storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker) -> None:
+    key, value = faker.pystr(), faker.pystr()
+    key2, value2 = faker.pystr(), faker.pystr()
+    storage = await storage_factory(indent=None, write_interval=None)  # type: ignore[call-arg]
+
+    await storage.set(key, value)
+    await storage.set(key2, value2)
+    await storage.write()
+
+    with storage._path.open("r") as f:
+        assert f.read() == textwrap.dedent("{" + f'"{key}": "{value}", "{key2}": "{value2}"' + "}")
