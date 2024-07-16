@@ -91,12 +91,17 @@ async def test_failure_during_write(storage_factory: STORAGE_FACTORY_RETURN_TYPE
     assert await storage2.get("abc") == "abc"
 
 
-async def test_aof(storage_factory: STORAGE_FACTORY_RETURN_TYPE) -> None:
-    storage1 = await storage_factory()
-    await storage1.set("abcabc", "123")
+async def test_aof(storage_factory: STORAGE_FACTORY_RETURN_TYPE, faker: Faker) -> None:
+    key, value = faker.pystr(), faker.pystr()
+    key2, value2 = faker.pystr(), faker.pystr()
 
-    storage2 = await storage_factory(storage1._path)  # type: ignore[call-arg]
-    assert await storage2.get("abcabc") == "123"
+    storage1 = await storage_factory(write_interval=False)  # type: ignore[call-arg]
+    await storage1.set(key, value)
+    await storage1.set(key2, value2)
+
+    storage2 = await storage_factory(storage1._path, write_interval=False)  # type: ignore[call-arg]
+    assert await storage2.get(key) == value
+    assert await storage2.get(key2) == value2
 
 
 async def test_aof_failure(storage: Storage, mocker: MockerFixture) -> None:

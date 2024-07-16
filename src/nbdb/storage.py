@@ -80,6 +80,11 @@ class Storage:
         if self._aof_path.exists():
             async with aiofile.AIOFile(self._aof_path, "r") as aof:
                 async for line in aiofile.LineReader(aof):
+                    if line == "\n":
+                        # first line is always empty, because it is easier
+                        # this way
+                        continue
+
                     for key, value in json.loads(line).items():
                         await self.set(key, value, _replay=True)
 
@@ -116,7 +121,7 @@ class Storage:
     async def _append_command(self, key: str, value: SERIALIZABLE_TYPE) -> None:
         """Handle AOF logic on every :func:`set`."""
         async with aiofile.async_open(self._aof_path, "a") as f:
-            await f.write(json.dumps({key: value}))
+            await f.write("\n" + json.dumps({key: value}))
 
     async def set(self, key: str, value: SERIALIZABLE_TYPE, _replay: bool = False) -> None:
         """
