@@ -57,7 +57,7 @@ poetry-dynamic-versioning = "^1.4.0"
 
 # workarounds
 setuptools = ">=70" # No module named 'pkg_resources'
-docutils = ">=0.18.1,<0.21" # https://github.com/CrossNox/m2r2/issues/68
+docutils = ">=0.18.1,<0.22" # https://github.com/CrossNox/m2r2/issues/68
 
 
 [tool.poetry.group.github_hooks]
