@@ -36,6 +36,7 @@ updates:
     - dependency-name: "m2r2"
     - dependency-name: "tomli"
     - dependency-name: "packaging"
+    - dependency-name: "docutils"
     # GitHub Hooks group
     - dependency-name: "requests"
     - dependency-name: "GitPython"
