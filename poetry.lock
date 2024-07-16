@@ -576,14 +576,33 @@ url = "https://pypi.org/simple"
 reference = "pypi-public"
 
 [[package]]
+name = "dunamai"
+version = "1.21.2"
+description = "Dynamic version generation"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "dunamai-1.21.2-py3-none-any.whl", hash = "sha256:87db76405bf9366f9b4925ff5bb1db191a9a1bd9f9693f81c4d3abb8298be6f0"},
+    {file = "dunamai-1.21.2.tar.gz", hash = "sha256:05827fb5f032f5596bfc944b23f613c147e676de118681f3bb1559533d8a65c4"},
+]
+
+[package.dependencies]
+packaging = ">=20.9"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "pypi-public"
+
+[[package]]
 name = "exceptiongroup"
-version = "1.2.1"
+version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
-    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
+    {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
+    {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
 ]
 
 [package.extras]
@@ -1212,6 +1231,30 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "pypi-public"
+
+[[package]]
+name = "poetry-dynamic-versioning"
+version = "1.4.0"
+description = "Plugin for Poetry to enable dynamic versioning based on VCS tags"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "poetry_dynamic_versioning-1.4.0-py3-none-any.whl", hash = "sha256:d6727d33d1c65850039cd804013a43780e0a3c9a3d693cf557ab87aa3891f148"},
+    {file = "poetry_dynamic_versioning-1.4.0.tar.gz", hash = "sha256:725178bd50a22f2dd4035de7f965151e14ecf8f7f19996b9e536f4c5559669a7"},
+]
+
+[package.dependencies]
+dunamai = ">=1.21.0,<2.0.0"
+jinja2 = ">=2.11.1,<4"
+tomlkit = ">=0.4"
+
+[package.extras]
+plugin = ["poetry (>=1.2.0,<2.0.0)"]
 
 [package.source]
 type = "legacy"
@@ -2304,4 +2347,4 @@ reference = "pypi-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "8f621ccbf5221514392894ca5f7f7efff8ca67bdd1565c40428d540d6c7f2b64"
+content-hash = "ed2e4fbe83b15cd10ac1f6555c020914d9847b6413cef142fdbbc6dd2bd633ec"

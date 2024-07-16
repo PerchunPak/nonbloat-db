@@ -1,12 +1,12 @@
 [build-system]
-requires = ["poetry-core>=1.3.0"]
+requires = ["poetry-core>=1.3.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
 name = "nonbloat-db"
 description = "Simple key-value database for my small projects!"
-version = "0.1.0"
+version = "0.0.0" # version is handled by git tags and poetry-dynamic-versioning
 license = "AGPL3"
 authors = []
 readme = "README.md"
@@ -53,6 +53,7 @@ furo = "*"
 m2r2 = "~0.3"
 tomli = { version = "~2.0", markers = "python_version < '3.11'" }
 packaging = "24.1"
+poetry-dynamic-versioning = "^1.4.0"
 
 # workarounds
 setuptools = ">=70" # No module named 'pkg_resources'
@@ -65,11 +66,18 @@ optional = true
 [tool.poetry.group.github_hooks.dependencies]
 requests = "~2.32"
 GitPython = "~3.1"
+poetry-dynamic-versioning = "*"  # actual version is in `docs` group
 
 
 [[tool.poetry.source]]
 name = "pypi-public"
 url = "https://pypi.org/simple/"
+
+
+[tool.poetry-dynamic-versioning]
+bump = true
+enable = true
+style = "pep440"
 
 
 [tool.black]
