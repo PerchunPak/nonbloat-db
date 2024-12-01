@@ -96,7 +96,9 @@ def test_str_file_changes_returns_truncated_contains_fields(
 @pytest.mark.parametrize("additions", [True, False])
 @pytest.mark.parametrize("deletions", [True, False])
 def test_bool_file_changes_return_correct_value(
-    faker: faker_package.Faker, additions: bool, deletions: bool
+    faker: faker_package.Faker,
+    additions: bool,  # noqa: FBT001
+    deletions: bool,  # noqa: FBT001
 ) -> None:
     """Tests that ``bool(FileChanges)`` returns correct value."""
     assert bool(
@@ -223,18 +225,22 @@ def test_send_http_request_error_handling(
     generator = commit_and_push.send_http_request((), {})
     next(generator)
 
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "Github raised error(s): \n"
-            + "\n".join(
-                error["message"]
-                for error in response.return_value.json.return_value["errors"]
-            )
+    with (
+        pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Github raised error(s): \n"
+                + "\n".join(
+                    error["message"]
+                    for error in response.return_value.json.return_value[
+                        "errors"
+                    ]
+                )
+            ),
         ),
+        contextlib.suppress(StopIteration),
     ):
-        with contextlib.suppress(StopIteration):
-            next(generator)
+        next(generator)
 
 
 def test_get_latest_commit_returns_latest_commit(
