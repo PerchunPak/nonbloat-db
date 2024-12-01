@@ -2,13 +2,13 @@ SHELL:=/usr/bin/env bash
 
 .PHONY: format
 format:
-	black .
-	isort .
-	pycln .
+	ruff check --fix .
+	ruff format .
 
 .PHONY: lint
 lint:
-	mypy .
+	ruff check .
+	basedpyright .
 
 .PHONY: style
 style: format lint

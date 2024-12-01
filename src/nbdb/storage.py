@@ -9,14 +9,21 @@ from pathlib import Path
 import aiofile
 import typing_extensions as te
 
+if t.TYPE_CHECKING:
+    import collections.abc as c
+
 logger = logging.getLogger(__name__)
 
-SERIALIZABLE_TYPE: te.TypeAlias = "str | int | dict | None"  # type: ignore[type-arg]
+SERIALIZABLE_TYPE: te.TypeAlias = "str | int | JSON_TYPE | None"
 """Types that are JSON serializable."""
+JSON_TYPE: te.TypeAlias = (
+    "c.Mapping[str, SERIALIZABLE_TYPE] | c.Sequence[SERIALIZABLE_TYPE]"
+)
 
 
+@t.final
 class Storage:
-    """Core key-value store, that is responsible for correctly storing JSON and writing it to file"""
+    """Core key-value store, that is responsible for correctly storing JSON and writing it to file."""
 
     def __init__(self, path: Path | str, *, indent: int | None) -> None:
         self._data: dict[str, SERIALIZABLE_TYPE] = {}
@@ -26,7 +33,7 @@ class Storage:
         self._aof_path = Path(str(self._path) + ".log.temp")
         self._indent = indent
 
-        self._write_loop_task: asyncio.Task[te.Never] = None  # type: ignore[assignment] # will be set in `.init`
+        self._write_loop_task: asyncio.Task[te.Never] = None  # pyright: ignore[reportAttributeAccessIssue]
 
     @classmethod
     async def init(
@@ -55,7 +62,9 @@ class Storage:
         await instance.read()
 
         if write_interval:
-            instance._write_loop_task = asyncio.create_task(instance._write_loop(write_interval))
+            instance._write_loop_task = asyncio.create_task(
+                instance._write_loop(write_interval)
+            )
 
         return instance
 
@@ -68,12 +77,18 @@ class Storage:
         """
         path = self._path
         if self._tempfile.exists():
-            logger.warning("Found tempfile with database, using it. Database file may be damaged")
+            logger.warning(
+                "Found tempfile with database, using it. Database file may be damaged"
+            )
             path = self._tempfile
 
         if path.exists():
             async with aiofile.async_open(path, "r") as f:
-                self._data = json.loads(await f.read())
+                content = t.cast(str, await f.read())
+                if content != "":
+                    self._data = json.loads(content)
+                else:
+                    self._data = {}
         else:
             self._data = {}
 
@@ -85,7 +100,9 @@ class Storage:
                         # this way
                         continue
 
-                    for key, value in json.loads(line).items():
+                    for key, value in t.cast(
+                        dict[str, SERIALIZABLE_TYPE], json.loads(line)
+                    ).items():
                         await self.set(key, value, _replay=True)
 
     async def write(self) -> None:
@@ -94,10 +111,12 @@ class Storage:
         You can also manually call this method whenever you want.
         """
         if self._path.exists():
-            self._path.rename(self._tempfile)
+            _ = self._path.rename(self._tempfile)
 
         async with aiofile.async_open(self._path, "w") as f:
-            await f.write(json.dumps(self._data, indent=self._indent, ensure_ascii=False))
+            _ = await f.write(
+                json.dumps(self._data, indent=self._indent, ensure_ascii=False)
+            )
 
         if self._aof_path.exists():
             self._aof_path.unlink()
@@ -113,7 +132,7 @@ class Storage:
         while True:
             try:
                 await self.write()
-            except Exception as exception:
+            except Exception as exception:  # noqa: PERF203
                 logger.exception("Error during write!", exc_info=exception)
             else:
                 await asyncio.sleep(interval)
@@ -121,10 +140,13 @@ class Storage:
     async def _append_command(self, key: str, value: SERIALIZABLE_TYPE) -> None:
         """Handle AOF logic on every :func:`set`."""
         async with aiofile.async_open(self._aof_path, "a") as f:
-            await f.write("\n" + json.dumps({key: value}))
+            _ = await f.write("\n" + json.dumps({key: value}))
 
-    async def set(self, key: str, value: SERIALIZABLE_TYPE, _replay: bool = False) -> None:
-        """
+    async def set(
+        self, key: str, value: SERIALIZABLE_TYPE, *, _replay: bool = False
+    ) -> None:
+        """Set a key to value.
+
         Arguments:
             _replay:
                 If ``True``, we won't do AOF stuff. This is used when we replay
@@ -140,7 +162,7 @@ class Storage:
             self._data[key] = value
 
         if task is not None:
-            await asyncio.gather(task)
+            _ = await asyncio.gather(task)
 
     async def get(self, key: str) -> SERIALIZABLE_TYPE:
         return self._data[key]

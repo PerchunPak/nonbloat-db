@@ -11,32 +11,37 @@ http://www.sphinx-doc.org/en/master/config
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
+from __future__ import annotations
+
 import os
 import sys
 from datetime import date
-from typing import Dict
+from pathlib import Path
 
+import typing_extensions as te
 from packaging.version import parse as parse_version
 
 try:
     from tomllib import load as toml_parse
 except ModuleNotFoundError:  # python <3.11
-    from tomli import load as toml_parse
+    from tomli import (  # pyright: ignore[reportMissingImports]
+        load as toml_parse,  # pyright: ignore[reportUnknownVariableType]
+    )
 
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath(".."))  # noqa: PTH100
 
 
 # -- Project information -----------------------------------------------------
 
 
-def _get_project_meta() -> Dict[str, str]:
-    with open("../pyproject.toml", "rb") as pyproject:
-        return toml_parse(pyproject)["tool"]["poetry"]  # type: ignore[no-any-return]
+def _get_project_meta() -> dict[str, str]:
+    with Path("../pyproject.toml").open("rb") as pyproject:
+        return toml_parse(pyproject)["tool"]["poetry"]  # pyright: ignore[reportUnknownVariableType]
 
 
 pkg_meta = _get_project_meta()
 project = str(pkg_meta["name"])
-copyright = str(date.today().year) + ", PerchunPak"
+copyright = str(date.today().year) + ", PerchunPak"  # noqa: A001,DTZ011
 author = "PerchunPak"
 
 parsed_version = parse_version(pkg_meta["version"])
@@ -160,6 +165,7 @@ def mock_autodoc() -> None:
     from sphinx.ext import autodoc
 
     class MockedClassDocumenter(autodoc.ClassDocumenter):
+        @te.override
         def add_line(self, line: str, source: str, *lineno: int) -> None:
             if line == "   Bases: :py:class:`object`":
                 return
