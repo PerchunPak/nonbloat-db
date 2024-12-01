@@ -165,7 +165,7 @@ def mock_autodoc() -> None:
                 return
             super().add_line(line, source, *lineno)
 
-    autodoc.ClassDocumenter = MockedClassDocumenter
+    autodoc.ClassDocumenter = MockedClassDocumenter  # type: ignore[misc]
 
 
 mock_autodoc()

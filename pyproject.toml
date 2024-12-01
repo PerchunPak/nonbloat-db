@@ -29,34 +29,34 @@ pycln = "~2.4"
 cruft = "~2.15"
 lice = "~0.6"  # for generating template
 
-pre-commit = "~3.7"
+pre-commit = "~4.0"
 
 
 [tool.poetry.group.typing.dependencies]
-mypy = "~1.10"
+mypy = "~1.13"
 
 
 [tool.poetry.group.tests.dependencies]
-pytest = "~8.2"
-pytest-asyncio = "~0.23"
-pytest-cov = "~5.0"
+pytest = "~8.3"
+pytest-asyncio = "~0.24"
+pytest-cov = "~6.0"
 pytest-mock = "~3.14"
-pytest-randomly = "~3.15"
-Faker = "~26.0"
+pytest-randomly = "~3.16"
+Faker = "~33.1"
 
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "~7.3"
-sphinx-autobuild = ">=2024.4.16"
-sphinx-autodoc-typehints = "~2.2"
+sphinx = "~7.4"
+sphinx-autobuild = "2024.10.3"
+sphinx-autodoc-typehints = "~2.3"
 furo = "*"
 m2r2 = "~0.3"
 tomli = { version = "~2.0", markers = "python_version < '3.11'" }
-packaging = "24.1"
-poetry-dynamic-versioning = "^1.4.0"
+packaging = "24.2"
+poetry-dynamic-versioning = "1.4.1"
 
 # workarounds
-setuptools = ">=70" # No module named 'pkg_resources'
+setuptools = "75" # No module named 'pkg_resources'
 docutils = ">=0.18.1,<0.21" # https://github.com/CrossNox/m2r2/issues/68
 
 

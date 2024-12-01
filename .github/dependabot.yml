@@ -23,6 +23,7 @@ updates:
     - dependency-name: "pre-commit"
     # Tests group
     - dependency-name: "pytest"
+    - dependency-name: "pytest-asyncio"
     - dependency-name: "pytest-cov"
     - dependency-name: "pytest-mock"
     - dependency-name: "pytest-randomly"
@@ -40,6 +41,11 @@ updates:
     # GitHub Hooks group
     - dependency-name: "requests"
     - dependency-name: "GitPython"
+    # my dependencies
+    - dependency-name: "aiofile"
+      update-types: [ "version-update:semver-minor" ]
+    - dependency-name: "sphinx-autobuild"
+    - dependency-name: "setuptools"
 
 - package-ecosystem: github-actions
   directory: "/"
