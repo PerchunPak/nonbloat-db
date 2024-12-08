@@ -19,6 +19,7 @@ from pathlib import Path
 
 import git.diff
 import requests
+import typing_extensions as te
 
 if t.TYPE_CHECKING:
     import collections.abc as c
@@ -94,7 +95,7 @@ class FileChanges:
             deletions=self.deletions + other.deletions,
         )
 
-    @t.override
+    @te.override
     def __str__(self) -> str:
         """Build JSON string representation of :class:`.FileChanges` object.
 

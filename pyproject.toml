@@ -196,7 +196,8 @@ pythonPlatform = "Linux"
 pythonVersion = "3.9"
 typeCheckingMode = "all"
 ignore = [
-  "tests/test_commit_and_push.py"
+  "docs/conf.py",
+  "tests/test_commit_and_push.py",
 ]
 
 # Diagnostic behavior settings

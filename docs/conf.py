@@ -22,7 +22,9 @@ import typing_extensions as te
 from packaging.version import parse as parse_version
 
 try:
-    from tomllib import load as toml_parse
+    from tomllib import (  # pyright: ignore[reportMissingTypeStubs]
+        load as toml_parse,
+    )
 except ModuleNotFoundError:  # python <3.11
     from tomli import (  # pyright: ignore[reportMissingImports]
         load as toml_parse,  # pyright: ignore[reportUnknownVariableType]

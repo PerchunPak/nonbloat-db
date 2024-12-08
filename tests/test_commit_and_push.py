@@ -306,7 +306,7 @@ def diff_item(
             self.a_path = faker.file_path()
             self.b_path = faker.file_path()
 
-    return typing.cast(typing.Callable[[str | None], git.Diff], DiffItem)
+    return typing.cast("typing.Callable[[str | None], git.Diff]", DiffItem)
 
 
 def test_calculate_file_changes_return_file_changes(
