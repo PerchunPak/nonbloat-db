@@ -107,13 +107,13 @@ reference = "pypi-public"
 
 [[package]]
 name = "basedpyright"
-version = "1.22.1"
+version = "1.23.0"
 description = "static type checking for Python (but based)"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "basedpyright-1.22.1-py3-none-any.whl", hash = "sha256:b25597757400ec082b1099eb99f0fc74857ff4dcd7caa198bf1e236d17214ebf"},
-    {file = "basedpyright-1.22.1.tar.gz", hash = "sha256:f7a2d0e49c7d375ce9e02a7c235536e824833c9df89c2ca7e605ab1a2995808f"},
+    {file = "basedpyright-1.23.0-py3-none-any.whl", hash = "sha256:b5610028c25034e94edc2e0d541860bc8d14f39697f274f2c8b2bbd05aab1f07"},
+    {file = "basedpyright-1.23.0.tar.gz", hash = "sha256:157021460eadb534fd1f32f9d5cfcd728c2e2d71500548f163e22789892567bd"},
 ]
 
 [package.dependencies]
@@ -2334,4 +2334,4 @@ reference = "pypi-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "5caebdc9f3d1093613bd7dcea0ac920309a5cd90bc0fd29245560576c64f1c8f"
+content-hash = "78add8a5f0e53c3b5b54d15d557a4d4d244c2edfb881e88962fadb1bbb466485"
