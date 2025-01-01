@@ -136,6 +136,10 @@ class Storage:
             try:
                 await self.write()
             except Exception as exception:  # noqa: PERF203
+                # stop working after if the task got canceled
+                if isinstance(exception, asyncio.CancelledError):
+                    raise exception  # noqa: TRY201
+
                 logger.exception("Error during write!", exc_info=exception)
             else:
                 await asyncio.sleep(interval)
