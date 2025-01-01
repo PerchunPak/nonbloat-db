@@ -202,11 +202,11 @@ async def test_storage_indent(
     with storage._path.open("r") as f:  # pyright: ignore[reportPrivateUsage]
         assert f.read() == textwrap.dedent(
             f"""\
-                    {'{'}
-                    {v}"{key}": "{value}",
-                    {v}"{key2}": "{value2}"
-                    {'}'}
-                """
+                {'{'}
+                {v}"{key}": "{value}",
+                {v}"{key2}": "{value2}"
+                {'}'}
+            """
         ).removesuffix("\n")
 
 

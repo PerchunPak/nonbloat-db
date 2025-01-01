@@ -33,6 +33,9 @@ class Storage:
         self._aof_path = Path(str(self._path) + ".log.temp")
         self._indent = indent
 
+        # ensure that the db file exists
+        self._path.touch(exist_ok=True)
+
         self._write_loop_task: asyncio.Task[te.Never] = None  # pyright: ignore[reportAttributeAccessIssue]
 
     @classmethod
