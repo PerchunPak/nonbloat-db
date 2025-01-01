@@ -15,9 +15,14 @@ if t.TYPE_CHECKING:
     from pathlib import Path
 
     from faker import Faker
-    from pytest_mock import MockerFixture
+    from pytest_mock import MockType, MockerFixture
 
 STORAGE_FACTORY_RETURN_TYPE: te.TypeAlias = t.Callable[[], c.Awaitable[Storage]]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_write_loop(session_mocker: MockerFixture) -> MockType:
+    return session_mocker.patch("nbdb.storage.Storage._write_loop")
 
 
 @pytest.fixture
@@ -168,7 +173,12 @@ async def test_write_in_background(
     storage_factory: STORAGE_FACTORY_RETURN_TYPE,
     faker: Faker,
     mocker: MockerFixture,
+    session_mocker: MockerFixture,
+    mock_write_loop: MockType,
 ) -> None:
+    # reactivate `_write_loop`, as we need it for this test
+    session_mocker.stop(mock_write_loop)
+
     key, value = faker.pystr(), faker.pystr()
     storage = t.cast(Storage, await storage_factory(write_interval=0.1))  # pyright: ignore[reportCallIssue]
     _ = mocker.patch.object(storage, "_append_command")  # disable AOF
@@ -179,6 +189,11 @@ async def test_write_in_background(
 
     storage2 = t.cast(Storage, await storage_factory(storage._path))  # pyright: ignore[reportCallIssue, reportPrivateUsage]
     assert await storage2.get(key) == value
+
+    _ = storage._write_loop_task.cancel()  # pyright: ignore[reportPrivateUsage]
+    _ = storage2._write_loop_task.cancel()  # pyright: ignore[reportPrivateUsage]
+    # restart `_write_loop` mock
+    mock_write_loop(session_mocker)
 
 
 @pytest.mark.parametrize("v", [2, "\t", "aaaa"])
