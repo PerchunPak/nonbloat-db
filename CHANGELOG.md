@@ -3,6 +3,11 @@
 We follow [Semantic Versions](https://semver.org/) style.
 
 
+## Version 0.1.3
+
+- Add support for Python 3.13.
+
+
 ## Version 0.1.2
 
 - Fix types to be compatible with (based)pyright ([`284e15bc`](https://github.com/PerchunPak/nonbloat-db/commit/284e15bc0251781560439ec6324ae7fa3f361421))
