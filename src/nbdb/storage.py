@@ -25,7 +25,13 @@ JSON_TYPE: te.TypeAlias = (
 class Storage:
     """Core key-value store, that is responsible for correctly storing JSON and writing it to file."""
 
+    # WARNING: You should call `del` on all instances by yourself,
+    # since Python does not guarantee that `__del__` will be ever called
+    instances: t.ClassVar[list[te.Self]] = []
+
     def __init__(self, path: Path | str, *, indent: int | None) -> None:
+        self.instances.append(self)
+
         self._data: dict[str, SERIALIZABLE_TYPE] = {}
         self._path = Path(path)
         self._tempfile = Path(str(self._path) + ".temp")
@@ -138,6 +144,7 @@ class Storage:
             except Exception as exception:  # noqa: PERF203
                 # stop working after if the task got canceled
                 if isinstance(exception, asyncio.CancelledError):
+                    await self.write()  # but ensure we won't lose data
                     raise exception  # noqa: TRY201
 
                 logger.exception("Error during write!", exc_info=exception)
@@ -173,3 +180,6 @@ class Storage:
 
     async def get(self, key: str) -> SERIALIZABLE_TYPE:
         return self._data[key]
+
+    def __del__(self) -> None:
+        _ = self._write_loop_task.cancel()
