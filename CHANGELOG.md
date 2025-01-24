@@ -3,6 +3,11 @@
 We follow [Semantic Versions](https://semver.org/) style.
 
 
+## Version 0.1.4
+
+- Add some shutdown abilities ([`f126ffb`](https://github.com/PerchunPak/nonbloat-db/commit/f126ffb6cdcc2cbc7e2bec8b58d27be31e3036f2))
+
+
 ## Version 0.1.3
 
 - Add support for Python 3.13.
