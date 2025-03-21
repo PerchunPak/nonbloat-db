@@ -39,7 +39,7 @@ aiofile = "~3"
 
 
 [tool.poetry.group.make.dependencies]
-ruff = "~0.8"
+ruff = ">=0.8,<0.12"
 pycln = "~2.4"
 cruft = "~2.15"
 lice = "~0.6"  # for generating template
