@@ -68,7 +68,7 @@ furo = "*"
 m2r2 = "~0.3"
 tomli = { version = "~2.0", markers = "python_version < '3.11'" }
 packaging = "24.2"
-poetry-dynamic-versioning = "1.4.1"
+poetry-dynamic-versioning = "1.8.1"
 
 # workarounds
 setuptools = "75" # No module named 'pkg_resources'
